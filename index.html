@@ -359,7 +359,7 @@
                         <input type="email" name="email" placeholder="Email Address" autocomplete="email" required class="chic-input">
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-                            <input type="text" name="event_date" placeholder="Proposed Date" autocomplete="off" class="chic-input">
+                        <input type="date" name="event_date" class="chic-input cursor-pointer" required aria-label="Proposed Date">
 
                             <select name="event_type" class="chic-input cursor-pointer appearance-none bg-transparent" required>
                                 <option value="" disabled selected>Nature of Event</option>
@@ -498,52 +498,64 @@
         });
 
 
+    const dateInput = document.querySelector('input[name="event_date"]');
+
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+
+    dateInput.min = `${year}-${month}-${day}`;
+
+
         // EmailJS
         emailjs.init({
             publicKey: "YOUR_PUBLIC_KEY"
         });
 
-        const form = document.getElementById("inquiry-form");
-        const button = document.getElementById("submit-button");
-        const buttonText = document.getElementById("button-text");
-        const status = document.getElementById("form-status");
+    const form = document.getElementById("inquiry-form");
+    const button = document.getElementById("submit-button");
+    const buttonText = document.getElementById("button-text");
+    const status = document.getElementById("form-status");
 
-        form.addEventListener("submit", function (event) {
-            event.preventDefault();
+    form.addEventListener("submit", async function (event) {
+        event.preventDefault();
 
-            button.disabled = true;
-            buttonText.textContent = "Sending...";
-            status.textContent = "";
+        button.disabled = true;
+        buttonText.textContent = "Sending...";
+        status.textContent = "";
+        status.className = "text-center text-micro mt-6 opacity-0 transition-all duration-500";
 
-            emailjs.sendForm(
+        try {
+            await emailjs.sendForm(
                 "YOUR_SERVICE_ID",
                 "YOUR_TEMPLATE_ID",
                 form
-            )
-            .then(() => {
-                status.textContent = "Your inquiry has been elegantly received. We shall be in touch.";
-                status.classList.remove("text-red-600");
-                status.classList.add("text-champagne");
+            );
 
-                form.reset();
-                buttonText.textContent = "Sent ✓";
+            // Success
+            status.textContent = "Your inquiry has been elegantly received. We shall be in touch.";
+            status.classList.add("text-champagne", "opacity-100");
 
-                setTimeout(() => {
-                    button.disabled = false;
-                    buttonText.textContent = "Submit Commission";
-                }, 3000);
-            })
-            .catch((error) => {
-                console.error("EmailJS Error:", error);
+            buttonText.textContent = "Inquiry Received ✓";
+            form.reset();
 
-                status.textContent = "Something went wrong. Please try again.";
-                status.classList.remove("text-champagne");
-                status.classList.add("text-red-600");
-
+            setTimeout(() => {
                 button.disabled = false;
                 buttonText.textContent = "Submit Commission";
-            });
-        });
+            }, 4000);
+
+        } catch (error) {
+            console.error("EmailJS Error:", error);
+
+            // Error
+            status.textContent = "We were unable to send your inquiry. Please try again.";
+            status.classList.add("text-red-700", "opacity-100");
+
+            button.disabled = false;
+            buttonText.textContent = "Try Again";
+        }
+    });
     </script>
 
 </body>
